@@ -1,31 +1,20 @@
 #![allow(unused)]
 #![allow(non_snake_case)]
 
+use flatten::Flatten;
+use flatten_derive::Flatten;
+use a2l_items::Characteristic;
+
+#[derive(Flatten)]
 struct Parent {
     uid: u32,
     child: Child,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 struct Child {
     uid: u32,
 }
-
-struct FlattenedParent {
-    uid: u32,
-    Child_uid: u32,
-}
-
-impl Parent {
-    // Method to flatten the Parent struct
-    fn flatten(&self) -> FlattenedParent {
-        FlattenedParent {
-            uid: self.uid,
-            Child_uid: self.child.uid,
-        }
-    }
-}
-
 
 fn main() {
     let parent = Parent {
@@ -33,6 +22,6 @@ fn main() {
         child: Child { uid: 2 },
     };
 
-    let flattened_parent = parent.flatten();
-    println!("FlattenedParent {{ uid: {}, Child_uid: {} }}", flattened_parent.uid, flattened_parent.Child_uid);
+    let x = parent.a2l_flatten();
+    dbg!(x);
 }

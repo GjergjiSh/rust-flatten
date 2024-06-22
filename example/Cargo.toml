@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+flatten = { path = "../flatten" }
+flatten_derive = { path = "../flatten/flatten_derive" }
+a2l_items = {path = "../a2l_items/"}

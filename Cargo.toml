@@ -2,7 +2,8 @@
 
 resolver = "2"
 
-members = [
+members = [ "a2l_items",
     "example",
     "flatten",
+    "flatten/flatten_derive"
 ]
