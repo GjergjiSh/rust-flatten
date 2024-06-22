@@ -11,7 +11,7 @@ struct Parent {
     child: Child,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Flatten)]
 struct Child {
     uid: u32,
 }

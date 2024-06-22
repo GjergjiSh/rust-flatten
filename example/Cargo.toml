@@ -7,3 +7,5 @@ edition = "2021"
 flatten = { path = "../flatten" }
 flatten_derive = { path = "../flatten/flatten_derive" }
 a2l_items = {path = "../a2l_items/"}
+
+impls = "1.0.3"

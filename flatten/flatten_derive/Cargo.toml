@@ -10,3 +10,4 @@ proc-macro = true
 syn = { version = "1.0", features = ["full"] }
 quote = "1.0"
 a2l_items = { path = "../../a2l_items/" }
+impls = "1.0.3"
