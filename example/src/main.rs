@@ -5,10 +5,29 @@ use flatten::Flatten;
 use flatten_derive::Flatten;
 use a2l_items::Characteristic;
 
+#[derive(Debug)]
+struct Registry {
+    characteristics: Vec<Characteristic>,
+}
+
+impl Registry {
+    fn add_segment<T>(&mut self, segment: T)
+    where
+        T: Flatten,
+    {
+        if let Some(characteristics) = segment.a2l_flatten() {
+            self.characteristics.extend(characteristics.into_iter());
+        }
+    }
+}
+
 #[derive(Flatten)]
 struct Parent {
-    // uid: u32,
-    // name: String,
+    #[comment = "Unique identifier"]
+    #[min = 10]
+    #[max = 20]
+    #[unit = "unit"]
+    uid: u32,
     child: Child,
 }
 
@@ -19,11 +38,14 @@ struct Child {
 
 fn main() {
     let parent = Parent {
-        // uid: 1,
-        // name: "Billy".to_string(),
+        uid: 1,
         child: Child { uid: 2 },
     };
 
-    let x = parent.a2l_flatten();
-    dbg!(x);
+    let registry = &mut Registry {
+        characteristics: Vec::new(),
+    };
+
+    registry.add_segment(parent);
+    dbg!(registry);
 }
