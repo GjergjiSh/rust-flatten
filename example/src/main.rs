@@ -7,7 +7,8 @@ use a2l_items::Characteristic;
 
 #[derive(Flatten)]
 struct Parent {
-    uid: u32,
+    // uid: u32,
+    // name: String,
     child: Child,
 }
 
@@ -18,7 +19,8 @@ struct Child {
 
 fn main() {
     let parent = Parent {
-        uid: 1,
+        // uid: 1,
+        // name: "Billy".to_string(),
         child: Child { uid: 2 },
     };
 
