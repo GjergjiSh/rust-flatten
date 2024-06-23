@@ -6,7 +6,7 @@ extern crate proc_macro;
 use a2l_items::Characteristic;
 use proc_macro::{TokenStream};
 use quote::quote;
-use syn::{Ident, parse_macro_input, Attribute, Data, DeriveInput, Fields, Lit, Meta, NestedMeta};
+use syn::{parse_macro_input, Attribute, Data, DeriveInput, Field, Fields, Ident, Lit, Meta, NestedMeta, Type};
 use std::ptr;
 
 #[proc_macro_derive(Flatten, attributes(comment, min, max, unit))]
@@ -19,6 +19,8 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
             let field_handlers = data_struct.fields.iter().map(|field| {
                 let field_name = &field.ident;
                 let field_type = &field.ty;
+
+                is_tuple_type(field);
 
                 let mut comment = String::new();
                 let mut min: i64 = 0;
@@ -156,4 +158,11 @@ fn _parse_comment(attribute: &Attribute, comment: &mut String) {
 
 
     *comment = comment_str.value();
+}
+
+fn is_tuple_type(field: &Field) -> bool {
+    match &field.ty {
+        Type::Tuple(_) => {println!("Tuple detected"); true},
+        _ => false,
+    }
 }

@@ -13,3 +13,7 @@ impl Flatten for u32 {
 impl Flatten for String {
 
 }
+
+impl Flatten for (i32, String) {
+
+}
