@@ -8,4 +8,12 @@ pub struct Characteristic {
     pub min: i64,
     pub max: i64,
     pub unit: String,
+    // pub characteristic_type: CharacteristicType
+}
+
+#[derive(Debug)]
+pub enum CharacteristicType {
+    MAP,
+    CURVE,
+    VALUE
 }

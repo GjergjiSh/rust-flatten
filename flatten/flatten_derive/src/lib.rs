@@ -3,10 +3,10 @@
 #![allow(unused_imports)]
 
 extern crate proc_macro;
-use a2l_items::Characteristic;
+use a2l_items::{Characteristic, CharacteristicType};
 use proc_macro::{TokenStream};
 use quote::quote;
-use syn::{parse_macro_input, Attribute, Data, DeriveInput, Field, Fields, Ident, Lit, Meta, NestedMeta, Type};
+use syn::{parse_macro_input, Attribute, Data, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument, Ident, Lit, Meta, NestedMeta, PathArguments, Type, TypeArray, TypePath};
 use std::ptr;
 
 #[proc_macro_derive(Flatten, attributes(comment, min, max, unit))]
@@ -19,6 +19,33 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
             let field_handlers = data_struct.fields.iter().map(|field| {
                 let field_name = &field.ident;
                 let field_type = &field.ty;
+                let characteristic_type;
+
+
+                let fname_str = field_name.as_ref().unwrap().to_string();
+                if is_map(field_type) || is_array(field_type) {
+                    characteristic_type = CharacteristicType::CURVE;
+                    println!("{} is map or array", fname_str);
+                }
+
+                let dimensions = get_array_dimensions(&field.ty);
+                if !dimensions.is_empty() {
+                    println!("Array dimensions: {:?}", dimensions);
+                    // For your example: map: [[i32; 9]; 8]
+                    // This will print: Array dimensions: [8, 9]
+
+                    if dimensions.len() >= 2 {
+                        let x = dimensions[1]; // 9 in your example
+                        let y = dimensions[0]; // 8 in your example
+                        println!("X dimension: {}, Y dimension: {}", x, y);
+                    }
+                }
+
+                if is_multidimensional_array(field_type) {
+                    println!("{} is multidimensional array", fname_str)
+                } else {
+                    println!("{} is NOT multidimensional array", fname_str)
+                }
 
                 is_tuple_type(field);
 
@@ -165,4 +192,73 @@ fn is_tuple_type(field: &Field) -> bool {
         Type::Tuple(_) => {println!("Tuple detected"); true},
         _ => false,
     }
+}
+
+fn is_array(field_type: &Type) -> bool {
+    match field_type {
+        Type::Array(_) => true,
+        Type::Path(TypePath { path, .. }) => {
+            if let Some(segment) = path.segments.last() {
+                let type_name = segment.ident.to_string();
+
+                // Check for Vec or Array
+                if type_name == "Vec" || type_name == "Array" {
+                    return true;
+                }
+            }
+            false
+        }
+        _ => false,
+    }
+}
+
+fn is_map(field_type: &Type) -> bool {
+    if let Type::Path(TypePath { path, .. }) = field_type {
+        if let Some(segment) = path.segments.last() {
+            let type_name = segment.ident.to_string();
+
+            // Check for HashMap
+            if type_name == "HashMap" {
+                return true;
+            }
+
+            // Check for other map types like BTreeMap
+            if type_name.ends_with("Map") {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+//TODO: replace with option to abvoid allocating empty vec
+fn get_array_dimensions(ty: &Type) -> Vec<usize> {
+    match ty {
+        Type::Array(TypeArray { elem, len, .. }) => {
+            let mut dimensions = Vec::new();
+            if let Expr::Lit(ExprLit { lit: Lit::Int(lit_int), .. }) = len {
+                if let Ok(dim) = lit_int.base10_parse() {
+                    dimensions.push(dim);
+                }
+            }
+            // Recursively check for nested arrays
+            dimensions.extend(get_array_dimensions(elem));
+            dimensions
+        },
+        _ => Vec::new(),
+    }
+}
+
+
+fn is_multidimensional_array(ty: &Type) -> bool {
+    fn check_dimensions(ty: &Type) -> usize {
+        match ty {
+            Type::Array(TypeArray { elem, .. }) => {
+                1 + check_dimensions(elem)
+            },
+            _ => 0,
+        }
+    }
+
+    check_dimensions(ty) > 1
 }

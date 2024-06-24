@@ -17,3 +17,6 @@ impl Flatten for String {
 impl Flatten for (i32, String) {
 
 }
+
+impl<T, const N: usize> Flatten for [T; N] {
+}

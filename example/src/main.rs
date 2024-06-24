@@ -61,6 +61,9 @@ struct Parent {
     uid: u32,
     child: Child,
     example_tuple: (i32, String),
+    array: [f32; 16],
+    map: [[i32; 9]; 8],
+    ndim_array: [[[i32; 4]; 3]; 2]
 }
 
 #[derive(Clone, Copy, Debug, Flatten)]
@@ -85,6 +88,31 @@ fn main() {
         uid: 1,
         child: Child { uid: 2 },
         example_tuple: (3, "example".to_string()),
+        array: [
+            0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5,
+        ],
+        map: [
+            [0, 0, 0, 0, 0, 0, 0, 1, 2],
+            [0, 0, 0, 0, 0, 0, 0, 2, 3],
+            [0, 0, 0, 0, 0, 1, 1, 2, 3],
+            [0, 0, 0, 0, 1, 1, 2, 3, 4],
+            [0, 0, 1, 1, 2, 3, 4, 5, 7],
+            [0, 1, 1, 1, 2, 4, 6, 8, 9],
+            [0, 1, 1, 2, 4, 5, 8, 9, 10],
+            [0, 1, 1, 3, 5, 8, 9, 10, 10],
+        ],
+        ndim_array: [
+            [
+                [1, 2, 3, 4],
+                [5, 6, 7, 8],
+                [9, 10, 11, 12]
+            ],
+            [
+                [13, 14, 15, 16],
+                [17, 18, 19, 20],
+                [21, 22, 23, 24]
+            ]
+        ],
     };
 
     let registry = &mut Registry {
@@ -93,8 +121,8 @@ fn main() {
 
     registry.add_segment(&parent);
     
-    named_a2l_flatten!(parent);
-    dbg!(registry);
+    // named_a2l_flatten!(parent);
+    // dbg!(registry);
 
     // for characteristic in named_a2l_flatten!(parent) {
     //     println!("{:?}", characteristic);
