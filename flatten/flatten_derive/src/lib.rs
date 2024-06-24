@@ -4,10 +4,64 @@
 
 extern crate proc_macro;
 use a2l_items::{Characteristic, CharacteristicType};
-use proc_macro::{TokenStream};
+use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Attribute, Data, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument, Ident, Lit, Meta, NestedMeta, PathArguments, Type, TypeArray, TypePath};
 use std::ptr;
+use syn::{
+    parse_macro_input, Attribute, Data, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument,
+    Ident, Lit, Meta, NestedMeta, PathArguments, Type, TypeArray, TypePath,
+};
+
+const XCP_ADDR_EXT_APP: u8 = 0;
+
+// serialize_to_a2l(default_page, /*event,*/ name);
+//base: value as *const _ as *const u8,
+//base: *const u8,
+
+// fn calc_offset<T>(val: &T) -> u64 {
+//     (val as *const _ as *const u8 as u64) - (self.base as u64)
+// }
+
+// fn get_address(offset: u16) {
+//     let ext = XCP_ADDR_EXT_APP;
+//     let idx: usize = 1; // This comes from XCP (Tight coupling)
+//     let addr: u32 = offset as u32 + xcp_get_cal_addr_base(idx);
+// }
+
+// fn xcp_get_cal_addr_base(calseg_index: usize) -> u32 {
+//     (((calseg_index as u32) + 1) | 0x8000) << 16 // Address format for calibration segment field is index | 0x8000 in high word, addr_ext is 0 (CANape does not support addr_ext in memory segments)
+// }
+
+/*
+
+
+fn modify_test_u8(calseg: &CalSeg<CalPage>, value: u8) {
+    let (ext, addr) = xcp_get_cal_ext_addr(
+        calseg.get_name(),
+        ((&self.test_u8 as *const u8 as usize)
+            - (&self as *const CalPage as *const u8 as usize)) as u16,
+    );
+    let err = xcp_short_download(addr, ext, 1, &[value]);
+    assert_eq!(err, 0);
+    calseg.sync();
+    assert_eq!(value, calseg.test_u8);
+}
+
+
+*/
+
+fn xcp_get_cal_addr_base(calseg_index: usize) -> u32 {
+    (((calseg_index as u32) + 1) | 0x8000) << 16 // Address format for calibration segment field is index | 0x8000 in high word, addr_ext is 0 (CANape does not support addr_ext in memory segments)
+}
+
+fn xcp_get_cal_ext_addr( offset: u16) -> u32 {
+    let calseg_index = 1;// Xcp::get().get_calseg_index(calseg_name);
+    let a2l_addr: u32 = offset as u32 + xcp_get_cal_addr_base(calseg_index);
+    // dbg!(a2l_addr);
+    // dbg!(a2l_ext);
+    println!("0x{:X}", a2l_addr);
+    a2l_addr
+}
 
 #[proc_macro_derive(Flatten, attributes(comment, min, max, unit))]
 pub fn flatten_derive(input: TokenStream) -> TokenStream {
@@ -22,6 +76,7 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                 let characteristic_type;
 
 
+
                 let fname_str = field_name.as_ref().unwrap().to_string();
                 if is_map(field_type) || is_array(field_type) {
                     characteristic_type = CharacteristicType::CURVE;
@@ -31,12 +86,9 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                 let dimensions = get_array_dimensions(&field.ty);
                 if !dimensions.is_empty() {
                     println!("Array dimensions: {:?}", dimensions);
-                    // For your example: map: [[i32; 9]; 8]
-                    // This will print: Array dimensions: [8, 9]
-
                     if dimensions.len() >= 2 {
-                        let x = dimensions[1]; // 9 in your example
-                        let y = dimensions[0]; // 8 in your example
+                        let x = dimensions[1];
+                        let y = dimensions[0];
                         println!("X dimension: {}, Y dimension: {}", x, y);
                     }
                 }
@@ -70,14 +122,24 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                 }
 
                 quote! {
+                    //TODO: QST Rainer.
+                    let ext = 0; //XCP_ADDR_EXT_APP
+                    let offset = ((&self.#field_name as *const _ as *const u8 as usize) - (self as *const _ as *const u8 as usize)) as u16;                    // let addr= xcp_get_cal_ext_addr(offset);
+                    let calseg_idx: usize = 0; // TIGHT Coupling to XCP
+                    let a2l_addr: u32 = offset as u32 + ((((calseg_idx as u32) + 1) | 0x8000) << 16);
+                    dbg!(a2l_addr);
+                    println!("0x{:X}", a2l_addr);
+
                     // Check if the field type implements Flatten and if so, call to_a2l_optional
                     if let Some(nested_characteristics) = <#field_type as Flatten>::a2l_flatten(&self.#field_name) {
+                        dbg!(&self.#field_name);
                         characteristics.extend(nested_characteristics.into_iter().map(|mut c| {
                             // Correctly format the name for nested characteristics, ensuring they are prefixed correctly
                             c.name = format!("{}.{}", stringify!(#data_type), c.name);
                             c
                         }));
                     } else {
+                        dbg!(&self.#field_name);
                         // Only add the characteristic for the field if it's not a nested structure implementing Flatten
                         characteristics.push(Characteristic {
                             name: format!("{}.{}", stringify!(#data_type), stringify!(#field_name)),
@@ -111,12 +173,10 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
     gen.into()
 }
 
-
 fn _parse_unit(attribute: &Attribute, unit: &mut String) {
     let meta = attribute.parse_meta().unwrap_or_else(|e| {
         panic!("Failed to parse 'unit' attribute: {}", e);
     });
-
 
     let unit_str = match meta {
         Meta::NameValue(meta) => match meta.lit {
@@ -126,16 +186,13 @@ fn _parse_unit(attribute: &Attribute, unit: &mut String) {
         _ => panic!("Expected 'unit' attribute to be a name-value pair"),
     };
 
-
     *unit = unit_str.value();
 }
-
 
 fn _parse_max(attribute: &Attribute, max: &mut i64) {
     let meta = attribute.parse_meta().unwrap_or_else(|e| {
         panic!("Failed to parse 'max' attribute: {}", e);
     });
-
 
     let max_int = match meta {
         Meta::NameValue(meta) => match meta.lit {
@@ -145,16 +202,13 @@ fn _parse_max(attribute: &Attribute, max: &mut i64) {
         _ => panic!("Expected 'max' attribute to be a name-value pair"),
     };
 
-
     *max = max_int.base10_parse::<i64>().unwrap();
 }
-
 
 fn _parse_min(attribute: &Attribute, min: &mut i64) {
     let meta = attribute.parse_meta().unwrap_or_else(|e| {
         panic!("Failed to parse 'min' attribute: {}", e);
     });
-
 
     let min_int = match meta {
         Meta::NameValue(meta) => match meta.lit {
@@ -164,16 +218,13 @@ fn _parse_min(attribute: &Attribute, min: &mut i64) {
         _ => panic!("Expected 'min' attribute to be a name-value pair"),
     };
 
-
     *min = min_int.base10_parse::<i64>().unwrap();
 }
-
 
 fn _parse_comment(attribute: &Attribute, comment: &mut String) {
     let meta = attribute.parse_meta().unwrap_or_else(|e| {
         panic!("Failed to parse 'comment' attribute: {}", e);
     });
-
 
     let comment_str = match meta {
         Meta::NameValue(meta) => match meta.lit {
@@ -183,13 +234,15 @@ fn _parse_comment(attribute: &Attribute, comment: &mut String) {
         _ => panic!("Expected 'comment' attribute to be a name-value pair"),
     };
 
-
     *comment = comment_str.value();
 }
 
 fn is_tuple_type(field: &Field) -> bool {
     match &field.ty {
-        Type::Tuple(_) => {println!("Tuple detected"); true},
+        Type::Tuple(_) => {
+            println!("Tuple detected");
+            true
+        }
         _ => false,
     }
 }
@@ -236,7 +289,11 @@ fn get_array_dimensions(ty: &Type) -> Vec<usize> {
     match ty {
         Type::Array(TypeArray { elem, len, .. }) => {
             let mut dimensions = Vec::new();
-            if let Expr::Lit(ExprLit { lit: Lit::Int(lit_int), .. }) = len {
+            if let Expr::Lit(ExprLit {
+                lit: Lit::Int(lit_int),
+                ..
+            }) = len
+            {
                 if let Ok(dim) = lit_int.base10_parse() {
                     dimensions.push(dim);
                 }
@@ -244,18 +301,15 @@ fn get_array_dimensions(ty: &Type) -> Vec<usize> {
             // Recursively check for nested arrays
             dimensions.extend(get_array_dimensions(elem));
             dimensions
-        },
+        }
         _ => Vec::new(),
     }
 }
 
-
 fn is_multidimensional_array(ty: &Type) -> bool {
     fn check_dimensions(ty: &Type) -> usize {
         match ty {
-            Type::Array(TypeArray { elem, .. }) => {
-                1 + check_dimensions(elem)
-            },
+            Type::Array(TypeArray { elem, .. }) => 1 + check_dimensions(elem),
             _ => 0,
         }
     }

@@ -122,7 +122,7 @@ fn main() {
     registry.add_segment(&parent);
     
     // named_a2l_flatten!(parent);
-    // dbg!(registry);
+    dbg!(registry);
 
     // for characteristic in named_a2l_flatten!(parent) {
     //     println!("{:?}", characteristic);
