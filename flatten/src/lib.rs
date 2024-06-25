@@ -1,18 +1,26 @@
 #![allow(dead_code)]
 
+use std::sync::{Mutex, Once};
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref REGISTRY_INSTANCE: Mutex<Registry> = Mutex::new(Registry {
+        characteristics: Vec::new(),
+    });
+}
+
 #[derive(Debug)]
 struct Registry {
     characteristics: Vec<Characteristic>,
 }
 
 impl Registry {
-    fn add_segment<T>(&mut self, segment: &T)
-    where
-        T: Flatten,
-    {
-        if let Some(characteristics) = segment.a2l_flatten() {
-            self.characteristics.extend(characteristics.into_iter());
-        }
+    // Method to add a characteristic to the global instance of Registry
+    pub fn add_characteristic(characteristic: Characteristic) {
+        // Lock the mutex to access the Registry
+        let mut registry_lock = REGISTRY_INSTANCE.lock().unwrap();
+        registry_lock.characteristics.push(characteristic);
     }
 }
 
