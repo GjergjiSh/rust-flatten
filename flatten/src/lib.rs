@@ -1,4 +1,38 @@
-use a2l_items::Characteristic;
+#![allow(dead_code)]
+
+#[derive(Debug)]
+struct Registry {
+    characteristics: Vec<Characteristic>,
+}
+
+impl Registry {
+    fn add_segment<T>(&mut self, segment: &T)
+    where
+        T: Flatten,
+    {
+        if let Some(characteristics) = segment.a2l_flatten() {
+            self.characteristics.extend(characteristics.into_iter());
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Characteristic {
+    pub name: String,
+    pub datatype: String,
+    pub comment: String,
+    pub min: i64,
+    pub max: i64,
+    pub unit: String,
+    pub characteristic_type: CharacteristicType
+}
+
+#[derive(Debug)]
+pub enum CharacteristicType {
+    MAP,
+    CURVE,
+    VALUE
+}
 
 pub trait Flatten {
     fn a2l_flatten(&self) -> Option<Vec<Characteristic>> {

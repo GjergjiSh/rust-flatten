@@ -5,7 +5,7 @@
 #![allow(unused_assignments)]
 
 extern crate proc_macro;
-use a2l_items::{Characteristic, CharacteristicType};
+// use flatten::{Characteristic, CharacteristicType};
 use proc_macro::TokenStream;
 use quote::quote;
 use std::ptr;

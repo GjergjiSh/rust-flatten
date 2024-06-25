@@ -2,14 +2,8 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-use a2l_items::{Characteristic, CharacteristicType};
-use flatten::Flatten;
+use flatten::{Flatten, Characteristic, CharacteristicType};
 use flatten_derive::Flatten;
-
-#[derive(Debug)]
-struct Registry {
-    characteristics: Vec<Characteristic>,
-}
 
 macro_rules! simple_dbg {
     ($val:expr) => {{
@@ -46,17 +40,6 @@ macro_rules! named_a2l_flatten {
     }
 } */
 
-impl Registry {
-    fn add_segment<T>(&mut self, segment: &T)
-    where
-        T: Flatten,
-    {
-        if let Some(characteristics) = segment.a2l_flatten() {
-            self.characteristics.extend(characteristics.into_iter());
-        }
-    }
-}
-
 #[derive(Flatten, Debug)]
 struct Parent {
     #[comment = "Unique identifier"]
@@ -69,6 +52,22 @@ struct Parent {
     array: [f32; 16],
     map: [[i32; 9]; 1],
     ndim_array: [[[i32; 4]; 1]; 2],
+}
+
+
+impl Parent {
+    const fn make() -> Parent {
+        Parent {
+            uid: 1,
+            child: Child { uid: 2 },
+            example_tuple: (3, "example"),
+            array: [
+                0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5,
+            ],
+            map: [[0, 0, 0, 0, 0, 0, 0, 1, 2]],
+            ndim_array: [[[1, 2, 3, 4]], [[13, 14, 15, 16]]],
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Flatten)]
@@ -86,28 +85,20 @@ struct Child {
 //     }};
 // }
 
-const PARENT: Parent = Parent {
-    uid: 1,
-    child: Child { uid: 2 },
-    example_tuple: (3, "example"),
-    array: [
-        0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5,
-    ],
-    map: [[0, 0, 0, 0, 0, 0, 0, 1, 2]],
-    ndim_array: [[[1, 2, 3, 4]], [[13, 14, 15, 16]]],
-};
+const PARENT: Parent = Parent::make();
 
 fn main() {
-    
+    let chars = PARENT.a2l_flatten();
+    dbg!(chars);
 
-    let registry = &mut Registry {
-        characteristics: Vec::new(),
-    };
+    // let registry = &mut Registry {
+    //     characteristics: Vec::new(),
+    // };
 
-    registry.add_segment(&PARENT);
+    // registry.add_segment(&PARENT);
 
-    // named_a2l_flatten!(parent);
-    dbg!(registry);
+    // // named_a2l_flatten!(parent);
+    // dbg!(registry);
 
     // for characteristic in named_a2l_flatten!(parent) {
     //     println!("{:?}", characteristic);

@@ -6,5 +6,4 @@ members = [
     "example",
     "flatten",
     "flatten/flatten_derive",
-    "flatten/a2l_items"
 ]
