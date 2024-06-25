@@ -4,7 +4,7 @@
 
 use flatten::{Flatten};
 use flatten_derive::{Flatten};
-use a2l_items::Characteristic;
+use a2l_items::{Characteristic, CharacteristicType};
 
 #[derive(Debug)]
 struct Registry {

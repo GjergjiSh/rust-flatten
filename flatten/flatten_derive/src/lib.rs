@@ -16,48 +16,12 @@ use syn::{
 
 const XCP_ADDR_EXT_APP: u8 = 0;
 
-// serialize_to_a2l(default_page, /*event,*/ name);
-//base: value as *const _ as *const u8,
-//base: *const u8,
-
-// fn calc_offset<T>(val: &T) -> u64 {
-//     (val as *const _ as *const u8 as u64) - (self.base as u64)
-// }
-
-// fn get_address(offset: u16) {
-//     let ext = XCP_ADDR_EXT_APP;
-//     let idx: usize = 1; // This comes from XCP (Tight coupling)
-//     let addr: u32 = offset as u32 + xcp_get_cal_addr_base(idx);
-// }
-
-// fn xcp_get_cal_addr_base(calseg_index: usize) -> u32 {
-//     (((calseg_index as u32) + 1) | 0x8000) << 16 // Address format for calibration segment field is index | 0x8000 in high word, addr_ext is 0 (CANape does not support addr_ext in memory segments)
-// }
-
-/*
-
-
-fn modify_test_u8(calseg: &CalSeg<CalPage>, value: u8) {
-    let (ext, addr) = xcp_get_cal_ext_addr(
-        calseg.get_name(),
-        ((&self.test_u8 as *const u8 as usize)
-            - (&self as *const CalPage as *const u8 as usize)) as u16,
-    );
-    let err = xcp_short_download(addr, ext, 1, &[value]);
-    assert_eq!(err, 0);
-    calseg.sync();
-    assert_eq!(value, calseg.test_u8);
-}
-
-
-*/
-
 fn xcp_get_cal_addr_base(calseg_index: usize) -> u32 {
     (((calseg_index as u32) + 1) | 0x8000) << 16 // Address format for calibration segment field is index | 0x8000 in high word, addr_ext is 0 (CANape does not support addr_ext in memory segments)
 }
 
-fn xcp_get_cal_ext_addr( offset: u16) -> u32 {
-    let calseg_index = 1;// Xcp::get().get_calseg_index(calseg_name);
+fn xcp_get_cal_ext_addr(offset: u16) -> u32 {
+    let calseg_index = 1; // Xcp::get().get_calseg_index(calseg_name);
     let a2l_addr: u32 = offset as u32 + xcp_get_cal_addr_base(calseg_index);
     // dbg!(a2l_addr);
     // dbg!(a2l_ext);
@@ -75,15 +39,14 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
             let field_handlers = data_struct.fields.iter().map(|field| {
                 let field_name = &field.ident;
                 let field_type = &field.ty;
-                let characteristic_type;
+                let characteristic_type = get_characteristic_type(field_type);
 
 
-
-                let fname_str = field_name.as_ref().unwrap().to_string();
-                if is_map(field_type) || is_array(field_type) {
-                    characteristic_type = CharacteristicType::CURVE;
-                    // println!("{} is map or array", fname_str);
-                }
+                // let fname_str = field_name.as_ref().unwrap().to_string();
+                // if is_map(field_type) || is_array(field_type) {
+                //     characteristic_type = CharacteristicType::CURVE;
+                //     // println!("{} is map or array", fname_str);
+                // }
 
                 let dimensions = get_array_dimensions(&field.ty);
                 if !dimensions.is_empty() {
@@ -150,6 +113,7 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                             min: #min,
                             max: #max,
                             unit: #unit.to_string(),
+                            characteristic_type: #characteristic_type
                         });
                     }
                 }
@@ -249,6 +213,7 @@ fn is_tuple_type(field: &Field) -> bool {
     }
 }
 
+//TODO: Check if having type vec is realistic
 fn is_array(field_type: &Type) -> bool {
     match field_type {
         Type::Array(_) => true,
@@ -317,4 +282,15 @@ fn is_multidimensional_array(ty: &Type) -> bool {
     }
 
     check_dimensions(ty) > 1
+}
+
+#[inline]
+fn get_characteristic_type(ty: &Type) -> proc_macro2::TokenStream {
+    if !is_array(ty) {
+        quote! { CharacteristicType::VALUE }
+    } else if is_multidimensional_array(ty) {
+        quote! { CharacteristicType::MAP }
+    } else {
+        quote! { CharacteristicType::CURVE }
+    }
 }
