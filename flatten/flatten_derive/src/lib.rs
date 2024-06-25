@@ -1,6 +1,8 @@
 #![allow(unused_mut)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
+#![allow(dead_code)]
+#![allow(unused_assignments)]
 
 extern crate proc_macro;
 use a2l_items::{Characteristic, CharacteristicType};
@@ -80,23 +82,23 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                 let fname_str = field_name.as_ref().unwrap().to_string();
                 if is_map(field_type) || is_array(field_type) {
                     characteristic_type = CharacteristicType::CURVE;
-                    println!("{} is map or array", fname_str);
+                    // println!("{} is map or array", fname_str);
                 }
 
                 let dimensions = get_array_dimensions(&field.ty);
                 if !dimensions.is_empty() {
-                    println!("Array dimensions: {:?}", dimensions);
+                    // println!("Array dimensions: {:?}", dimensions);
                     if dimensions.len() >= 2 {
                         let x = dimensions[1];
                         let y = dimensions[0];
-                        println!("X dimension: {}, Y dimension: {}", x, y);
+                        // println!("X dimension: {}, Y dimension: {}", x, y);
                     }
                 }
 
                 if is_multidimensional_array(field_type) {
-                    println!("{} is multidimensional array", fname_str)
+                    // println!("{} is multidimensional array", fname_str)
                 } else {
-                    println!("{} is NOT multidimensional array", fname_str)
+                    // println!("{} is NOT multidimensional array", fname_str)
                 }
 
                 is_tuple_type(field);
@@ -127,19 +129,19 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                     let offset = ((&self.#field_name as *const _ as *const u8 as usize) - (self as *const _ as *const u8 as usize)) as u16;                    // let addr= xcp_get_cal_ext_addr(offset);
                     let calseg_idx: usize = 0; // TIGHT Coupling to XCP
                     let a2l_addr: u32 = offset as u32 + ((((calseg_idx as u32) + 1) | 0x8000) << 16);
-                    dbg!(a2l_addr);
-                    println!("0x{:X}", a2l_addr);
+                    // dbg!(a2l_addr);
+                    // println!("0x{:X}", a2l_addr);
 
                     // Check if the field type implements Flatten and if so, call to_a2l_optional
                     if let Some(nested_characteristics) = <#field_type as Flatten>::a2l_flatten(&self.#field_name) {
-                        dbg!(&self.#field_name);
+                        // dbg!(&self.#field_name);
                         characteristics.extend(nested_characteristics.into_iter().map(|mut c| {
                             // Correctly format the name for nested characteristics, ensuring they are prefixed correctly
                             c.name = format!("{}.{}", stringify!(#data_type), c.name);
                             c
                         }));
                     } else {
-                        dbg!(&self.#field_name);
+                        // dbg!(&self.#field_name);
                         // Only add the characteristic for the field if it's not a nested structure implementing Flatten
                         characteristics.push(Characteristic {
                             name: format!("{}.{}", stringify!(#data_type), stringify!(#field_name)),
@@ -240,7 +242,7 @@ fn _parse_comment(attribute: &Attribute, comment: &mut String) {
 fn is_tuple_type(field: &Field) -> bool {
     match &field.ty {
         Type::Tuple(_) => {
-            println!("Tuple detected");
+            // println!("Tuple detected");
             true
         }
         _ => false,

@@ -1,5 +1,6 @@
 #![allow(unused)]
 #![allow(non_snake_case)]
+#![allow(dead_code)]
 
 use flatten::{Flatten};
 use flatten_derive::{Flatten};
