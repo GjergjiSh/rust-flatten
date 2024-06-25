@@ -2,9 +2,9 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-use flatten::{Flatten};
-use flatten_derive::{Flatten};
 use a2l_items::{Characteristic, CharacteristicType};
+use flatten::Flatten;
+use flatten_derive::Flatten;
 
 #[derive(Debug)]
 struct Registry {
@@ -12,13 +12,17 @@ struct Registry {
 }
 
 macro_rules! simple_dbg {
-    ($val:expr) => {
-        {
-            let val = &$val; // Take a reference to avoid moving ownership
-            println!("{} = {:?} at {}:{}", stringify!($val), val, file!(), line!());
-            val
-        }
-    };
+    ($val:expr) => {{
+        let val = &$val; // Take a reference to avoid moving ownership
+        println!(
+            "{} = {:?} at {}:{}",
+            stringify!($val),
+            val,
+            file!(),
+            line!()
+        );
+        val
+    }};
 }
 
 macro_rules! named_a2l_flatten {
@@ -61,10 +65,10 @@ struct Parent {
     #[unit = "unit"]
     uid: u32,
     child: Child,
-    example_tuple: (i32, String),
+    example_tuple: (i32, &'static str),
     array: [f32; 16],
-    map: [[i32; 9]; 8],
-    ndim_array: [[[i32; 4]; 3]; 2]
+    map: [[i32; 9]; 1],
+    ndim_array: [[[i32; 4]; 1]; 2],
 }
 
 #[derive(Clone, Copy, Debug, Flatten)]
@@ -82,46 +86,26 @@ struct Child {
 //     }};
 // }
 
-
+const PARENT: Parent = Parent {
+    uid: 1,
+    child: Child { uid: 2 },
+    example_tuple: (3, "example"),
+    array: [
+        0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5,
+    ],
+    map: [[0, 0, 0, 0, 0, 0, 0, 1, 2]],
+    ndim_array: [[[1, 2, 3, 4]], [[13, 14, 15, 16]]],
+};
 
 fn main() {
-    let parent = Parent {
-        uid: 1,
-        child: Child { uid: 2 },
-        example_tuple: (3, "example".to_string()),
-        array: [
-            0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5,
-        ],
-        map: [
-            [0, 0, 0, 0, 0, 0, 0, 1, 2],
-            [0, 0, 0, 0, 0, 0, 0, 2, 3],
-            [0, 0, 0, 0, 0, 1, 1, 2, 3],
-            [0, 0, 0, 0, 1, 1, 2, 3, 4],
-            [0, 0, 1, 1, 2, 3, 4, 5, 7],
-            [0, 1, 1, 1, 2, 4, 6, 8, 9],
-            [0, 1, 1, 2, 4, 5, 8, 9, 10],
-            [0, 1, 1, 3, 5, 8, 9, 10, 10],
-        ],
-        ndim_array: [
-            [
-                [1, 2, 3, 4],
-                [5, 6, 7, 8],
-                [9, 10, 11, 12]
-            ],
-            [
-                [13, 14, 15, 16],
-                [17, 18, 19, 20],
-                [21, 22, 23, 24]
-            ]
-        ],
-    };
+    
 
     let registry = &mut Registry {
         characteristics: Vec::new(),
     };
 
-    registry.add_segment(&parent);
-    
+    registry.add_segment(&PARENT);
+
     // named_a2l_flatten!(parent);
     dbg!(registry);
 
