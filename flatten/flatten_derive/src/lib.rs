@@ -10,8 +10,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use std::ptr;
 use syn::{
-    parse_macro_input, Attribute, Data, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument,
-    Ident, Lit, Meta, NestedMeta, PathArguments, Type, TypeArray, TypePath,
+    parse_macro_input, Attribute, Data, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument, Ident, Lit, Meta, MetaNameValue, NestedMeta, PathArguments, Type, TypeArray, TypePath
 };
 
 const XCP_ADDR_EXT_APP: u8 = 0;
@@ -41,37 +40,33 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                 let field_type = &field.ty;
                 let characteristic_type = get_characteristic_type(field_type);
 
-
-                // let fname_str = field_name.as_ref().unwrap().to_string();
-                // if is_map(field_type) || is_array(field_type) {
-                //     characteristic_type = CharacteristicType::CURVE;
-                //     // println!("{} is map or array", fname_str);
-                // }
-
-                let dimensions = get_array_dimensions(&field.ty);
-                if !dimensions.is_empty() {
-                    // println!("Array dimensions: {:?}", dimensions);
-                    if dimensions.len() >= 2 {
-                        let x = dimensions[1];
-                        let y = dimensions[0];
-                        // println!("X dimension: {}, Y dimension: {}", x, y);
-                    }
-                }
-
-                if is_multidimensional_array(field_type) {
-                    // println!("{} is multidimensional array", fname_str)
-                } else {
-                    // println!("{} is NOT multidimensional array", fname_str)
-                }
-
-                is_tuple_type(field);
-
                 let mut comment = String::new();
                 let mut min: i64 = 0;
                 let mut max: i64 = 0;
                 let mut unit = String::new();
 
+
                 for attribute in &field.attrs {
+                    let cmlit = quote! { #attribute };
+                    dbg!(cmlit);
+
+                     // Check if the attribute is a name-value pair
+                    if let Ok(Meta::NameValue(MetaNameValue { path, lit: Lit::Str(lit_str), .. })) = attribute.parse_meta() {
+                        // Convert the path of the attribute to a string to check its name
+                        if let Some(ident) = path.get_ident() {
+                            let name = ident.to_string();
+                            // For demonstration, we're interested in "comment", "min", "max", "unit" attributes
+                            match name.as_str() {
+                                "comment" | "min" | "max" | "unit" => {
+                                    // Return the value of the attribute as a String
+                                    
+                                },
+                                _ => {}
+                            }
+                        }
+                    }
+
+
                     let ident = match attribute.path.get_ident().map(Ident::to_string) {
                         Some(ident) => ident,
                         None => continue, //TODO: Check if panic is better

@@ -1,9 +1,8 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
-use std::sync::{Mutex, Once};
-
 use lazy_static::lazy_static;
+use std::sync::{Mutex, Once};
 
 lazy_static! {
     static ref REGISTRY_INSTANCE: Mutex<Registry> = Mutex::new(Registry {

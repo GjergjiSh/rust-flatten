@@ -4,7 +4,7 @@
 
 use flatten::{Flatten, Characteristic, CharacteristicType};
 use flatten_derive::Flatten;
-use flatten::Registry;
+// use flatten::Registry;
 
 macro_rules! simple_dbg {
     ($val:expr) => {{
@@ -100,7 +100,7 @@ const PARENT: Parent = Parent::make();
 
 fn main() {
     let chars = PARENT.a2l_flatten();
-    dbg!(chars);
+    // dbg!(chars);
 
     // let registry = &mut Registry {
     //     characteristics: Vec::new(),
