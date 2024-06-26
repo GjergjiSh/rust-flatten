@@ -4,6 +4,7 @@
 
 use flatten::{Flatten, Characteristic, CharacteristicType};
 use flatten_derive::Flatten;
+use flatten::Registry;
 
 macro_rules! simple_dbg {
     ($val:expr) => {{
@@ -57,7 +58,7 @@ struct Parent {
 
 impl Parent {
     const fn make() -> Parent {
-        Parent {
+        const PARENT : Parent = Parent {
             uid: 1,
             child: Child { uid: 2 },
             example_tuple: (3, "example"),
@@ -66,7 +67,17 @@ impl Parent {
             ],
             map: [[0, 0, 0, 0, 0, 0, 0, 1, 2]],
             ndim_array: [[[1, 2, 3, 4]], [[13, 14, 15, 16]]],
-        }
+        };
+
+        // Registry::add_characteristic(Characteristic {
+            
+        // })
+
+        // PARENT.a2l_flatten().iter().for_each(|characteristic| {
+        //     // Registry::add_characteristic(characteristic.clone());
+        // });
+
+        PARENT
     }
 }
 

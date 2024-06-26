@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(unused_imports)]
 
 use std::sync::{Mutex, Once};
 
@@ -11,7 +12,7 @@ lazy_static! {
 }
 
 #[derive(Debug)]
-struct Registry {
+pub struct Registry {
     characteristics: Vec<Characteristic>,
 }
 
@@ -24,7 +25,7 @@ impl Registry {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Characteristic {
     pub name: String,
     pub datatype: String,
@@ -35,7 +36,7 @@ pub struct Characteristic {
     pub characteristic_type: CharacteristicType
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CharacteristicType {
     MAP,
     CURVE,
@@ -43,7 +44,9 @@ pub enum CharacteristicType {
 }
 
 pub trait Flatten {
-    fn a2l_flatten(&self) -> Option<Vec<Characteristic>> {
+    fn a2l_flatten(&self) -> Vec<Characteristic>;
+
+    fn a2l_flatten_optional(&self) -> Option<Vec<Characteristic>> {
         None
     }
 }
@@ -53,14 +56,31 @@ pub trait Flatten {
 macro_rules! impl_flatten_for_primitive {
     ($($t:ty),*) => {
         $(
-            impl Flatten for $t {}
+            impl Flatten for $t {
+                fn a2l_flatten(&self) -> Vec<Characteristic> {
+                    panic!("Not implemented for type {}", stringify!($t));
+                }
+
+                fn a2l_flatten_optional(&self) -> Option<Vec<Characteristic>> {
+                    None
+                }
+            }
         )*
     };
 }
 
 impl_flatten_for_primitive!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64, bool, char, String);
 
+//TODO: Error messages
 impl<T, const N: usize> Flatten for [T; N] {
+    fn a2l_flatten(&self) -> Vec<Characteristic> {
+        panic!("Not implemented for type [T; N]");
+    }
 }
 
-impl<T1, T2> Flatten for (T1, T2) {}
+//TODO: Error messages
+impl<T1, T2> Flatten for (T1, T2) {
+    fn a2l_flatten(&self) -> Vec<Characteristic> {
+        panic!("Not implemented for type (T1, T2)");
+    }
+}

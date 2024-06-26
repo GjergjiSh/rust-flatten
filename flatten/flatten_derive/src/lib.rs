@@ -96,7 +96,7 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                     // println!("0x{:X}", a2l_addr);
 
                     // Check if the field type implements Flatten and if so, call to_a2l_optional
-                    if let Some(nested_characteristics) = <#field_type as Flatten>::a2l_flatten(&self.#field_name) {
+                    if let Some(nested_characteristics) = <#field_type as Flatten>::a2l_flatten_optional(&self.#field_name) {
                         // dbg!(&self.#field_name);
                         characteristics.extend(nested_characteristics.into_iter().map(|mut c| {
                             // Correctly format the name for nested characteristics, ensuring they are prefixed correctly
@@ -121,15 +121,15 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
 
             quote! {
                 impl Flatten for #data_type {
-                    fn a2l_flatten(&self) -> Option<Vec<Characteristic>> {
+                    fn a2l_flatten(&self) -> Vec<Characteristic> {
                         let mut characteristics = Vec::new();
                         #(#field_handlers)*
-                        Some(characteristics)
+                        characteristics
                     }
 
-                    // fn to_a2l_optional(&self) -> Option<Vec<Characteristic>> {
-                    //     Some(self.a2l_flatten())
-                    // }
+                    fn a2l_flatten_optional(&self) -> Option<Vec<Characteristic>> {
+                        Some(self.a2l_flatten())
+                    }
                 }
             }
         }
