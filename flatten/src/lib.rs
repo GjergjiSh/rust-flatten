@@ -1,3 +1,10 @@
+pub mod prelude {
+    pub use crate::{
+        Characteristic, CharacteristicContainer, CharacteristicType,
+    };
+}
+
+
 pub trait CharacteristicContainer {
     fn characteristics(&self) -> Option<Vec<Characteristic>> {
         None
