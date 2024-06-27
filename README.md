@@ -1,8 +1,8 @@
 Let's discuss the issue in more detail so you understand what I want.
-I have a struct that i will eventually anotate with derive(Flatten)
+I have a struct that i will eventually anotate with derive(CharacteristicContainer)
 
 ```rust
-#[derive(Flatten)]
+#[derive(CharacteristicContainer)]
 struct Parent {
     uid: u32,
     child: Child,
@@ -70,10 +70,10 @@ parent.to_a2l() -> Vec<Characteristic> {
 
 # Rewite
 
-I have a struct that i will eventually anotate with derive(Flatten)
+I have a struct that i will eventually anotate with derive(CharacteristicContainer)
 
 ```rust
-#[derive(Flatten)]
+#[derive(CharacteristicContainer)]
 struct Parent {
     uid: u32,
     child: Child,
@@ -129,17 +129,17 @@ parent.to_a2l() -> Vec<Characteristic> {
 
 # Workaround
 
-if let Some(nested_characteristics) = <#field_type as Flatten>::to_a2l_optional(&self.#field_name) {
+if let Some(nested_characteristics) = <#field_type as CharacteristicContainer>::to_a2l_optional(&self.#field_name) {
     ...
 }
 
-This line attempts to call to_a2l_optional on every field of the struct, regardless of its type. The to_a2l_optional method is a part of the Flatten trait, so this line effectively requires every field type (#field_type) within your struct to implement the Flatten trait. Since primitive types like u32 do not implement this trait (and you cannot directly implement external traits on external types due to Rust's orphan rule), the compiler will complain.
+This line attempts to call to_a2l_optional on every field of the struct, regardless of its type. The to_a2l_optional method is a part of the CharacteristicContainer trait, so this line effectively requires every field type (#field_type) within your struct to implement the CharacteristicContainer trait. Since primitive types like u32 do not implement this trait (and you cannot directly implement external traits on external types due to Rust's orphan rule), the compiler will complain.
 
-To resolve this issue, you need a way to conditionally call to_a2l_optional only on types that implement Flatten, without requiring it for types that do not (like u32). Unfortunately, Rust's type system does not directly support checking if a type implements a trait at runtime (trait object checks are compile-time).
+To resolve this issue, you need a way to conditionally call to_a2l_optional only on types that implement CharacteristicContainer, without requiring it for types that do not (like u32). Unfortunately, Rust's type system does not directly support checking if a type implements a trait at runtime (trait object checks are compile-time).
 
 One workaround is to use a procedural macro to generate different code based on the type of each field. However, this requires knowing the types at compile time and cannot be done with simple trait bounds or conditional checks in the trait implementation itself.
 
-Another approach is to provide a default implementation of Flatten for all types that do not need flattening, essentially making the operation a no-op for them. This can be somewhat achieved using a blanket implementation, but Rust does not allow blanket implementations that conflict with more specific implementations.
+Another approach is to provide a default implementation of CharacteristicContainer for all types that do not need flattening, essentially making the operation a no-op for them. This can be somewhat achieved using a blanket implementation, but Rust does not allow blanket implementations that conflict with more specific implementations.
 
 Given these constraints, the most straightforward solution might be to reconsider the design. If the goal is to only flatten certain complex types (and ignore or handle primitives differently), you might need to explicitly mark which fields or types should be flattened, or provide a mechanism to bypass the flattening process for types that do not support it.
 
