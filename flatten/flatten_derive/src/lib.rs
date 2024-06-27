@@ -41,31 +41,6 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                 let field_type = &field.ty;
                 let characteristic_type = get_characteristic_type(field_type);
 
-
-                // let fname_str = field_name.as_ref().unwrap().to_string();
-                // if is_map(field_type) || is_array(field_type) {
-                //     characteristic_type = CharacteristicType::CURVE;
-                //     // println!("{} is map or array", fname_str);
-                // }
-
-                let dimensions = get_array_dimensions(&field.ty);
-                if !dimensions.is_empty() {
-                    // println!("Array dimensions: {:?}", dimensions);
-                    if dimensions.len() >= 2 {
-                        let x = dimensions[1];
-                        let y = dimensions[0];
-                        // println!("X dimension: {}, Y dimension: {}", x, y);
-                    }
-                }
-
-                if is_multidimensional_array(field_type) {
-                    // println!("{} is multidimensional array", fname_str)
-                } else {
-                    // println!("{} is NOT multidimensional array", fname_str)
-                }
-
-                is_tuple_type(field);
-
                 let mut comment = String::new();
                 let mut min: i64 = 0;
                 let mut max: i64 = 0;
@@ -89,13 +64,13 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                 quote! {
                     //TODO: QST Rainer.
                     let ext = 0; //XCP_ADDR_EXT_APP
-                    let offset = ((&self.#field_name as *const _ as *const u8 as usize) - (self as *const _ as *const u8 as usize)) as u16;                    // let addr= xcp_get_cal_ext_addr(offset);
+                    let offset = ((&self.#field_name as *const _ as *const u8 as usize) - (self as *const _ as *const u8 as usize)) as u16;
                     let calseg_idx: usize = 0; // TIGHT Coupling to XCP
                     let a2l_addr: u32 = offset as u32 + ((((calseg_idx as u32) + 1) | 0x8000) << 16);
                     // dbg!(a2l_addr);
                     // println!("0x{:X}", a2l_addr);
 
-                    // Check if the field type implements Flatten and if so, call to_a2l_optional
+                    // Check if the field type implements Flatten and if so, call a2l_flatten
                     if let Some(nested_characteristics) = <#field_type as Flatten>::a2l_flatten(&self.#field_name) {
                         // dbg!(&self.#field_name);
                         characteristics.extend(nested_characteristics.into_iter().map(|mut c| {

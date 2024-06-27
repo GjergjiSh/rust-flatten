@@ -57,7 +57,7 @@ struct Parent {
 
 impl Parent {
     const fn make() -> Parent {
-        Parent {
+        const PARENT: Parent = Parent {
             uid: 1,
             child: Child { uid: 2 },
             example_tuple: (3, "example"),
@@ -66,7 +66,9 @@ impl Parent {
             ],
             map: [[0, 0, 0, 0, 0, 0, 0, 1, 2]],
             ndim_array: [[[1, 2, 3, 4]], [[13, 14, 15, 16]]],
-        }
+        };
+
+        PARENT
     }
 }
 
