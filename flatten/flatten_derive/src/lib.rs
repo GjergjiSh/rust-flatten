@@ -63,12 +63,12 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
 
                 quote! {
                     //TODO: QST Rainer.
-                    let ext = 0; //XCP_ADDR_EXT_APP
+                    // let ext = 0; //XCP_ADDR_EXT_APP
                     let offset = ((&self.#field_name as *const _ as *const u8 as usize) - (self as *const _ as *const u8 as usize)) as u16;
-                    let calseg_idx: usize = 0; // TIGHT Coupling to XCP
-                    let a2l_addr: u32 = offset as u32 + ((((calseg_idx as u32) + 1) | 0x8000) << 16);
+                    // let calseg_idx: usize = 0; // TIGHT Coupling to XCP
+                    // let a2l_addr: u32 = offset as u32 + ((((calseg_idx as u32) + 1) | 0x8000) << 16);
                     // dbg!(a2l_addr);
-                    // println!("0x{:X}", a2l_addr);
+                    // println!("INSIDE IMPL 0x{:X}", a2l_addr);
 
                     // Check if the field type implements Flatten and if so, call a2l_flatten
                     if let Some(nested_characteristics) = <#field_type as Flatten>::a2l_flatten(&self.#field_name) {
@@ -88,7 +88,9 @@ pub fn flatten_derive(input: TokenStream) -> TokenStream {
                             min: #min,
                             max: #max,
                             unit: #unit.to_string(),
-                            characteristic_type: #characteristic_type
+                            characteristic_type: #characteristic_type,
+                            offset: offset,
+                            extension: 0 //XCP_ADDR_EXT_APP
                         });
                     }
                 }

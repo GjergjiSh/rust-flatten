@@ -2,7 +2,9 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-use flatten::{Flatten, Characteristic, CharacteristicType};
+use std::sync::{Arc, Mutex};
+
+use flatten::{Characteristic, CharacteristicType, Flatten};
 use flatten_derive::Flatten;
 
 macro_rules! simple_dbg {
@@ -40,7 +42,7 @@ macro_rules! named_a2l_flatten {
     }
 } */
 
-#[derive(Flatten, Debug)]
+#[derive(Clone, Copy, Flatten, Debug)]
 struct Parent {
     #[comment = "Unique identifier"]
     #[min = 10]
@@ -53,7 +55,6 @@ struct Parent {
     map: [[i32; 9]; 1],
     ndim_array: [[[i32; 4]; 1]; 2],
 }
-
 
 impl Parent {
     const fn make() -> Parent {
@@ -89,9 +90,41 @@ struct Child {
 
 const PARENT: Parent = Parent::make();
 
+#[derive(Debug, Copy, Clone)]
+struct CalPage<T: Copy + Clone>(usize, T);
+
+struct CalSeg<T>
+where
+    T: Copy + Clone + Flatten,
+{
+    ecu_page: Box<CalPage<T>>,
+    xcp_page: Arc<Mutex<CalPage<T>>>,
+}
+
+impl<T> CalSeg<T> where T: Copy + Clone + Flatten {
+    pub fn serialize(&self) {
+        dbg!(self.ecu_page.as_ref().1.a2l_flatten());
+    }
+}
+
+
+
 fn main() {
     let chars = PARENT.a2l_flatten();
-    dbg!(chars);
+    // dbg!(chars);
+
+    // Create an instance of CalPage using PARENT
+    let ecu_page = Box::new(CalPage(0, PARENT));
+
+    // Create an instance of CalSeg using CalPage instance
+    let xcp_page = Arc::new(Mutex::new(CalPage(0, PARENT)));
+
+    let cal_seg_instance = CalSeg {
+        ecu_page: ecu_page,
+        xcp_page: xcp_page,
+    };
+
+    cal_seg_instance.serialize();
 
     // let registry = &mut Registry {
     //     characteristics: Vec::new(),

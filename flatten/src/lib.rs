@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use std::sync::{Mutex, Once};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 struct Registry {
@@ -19,6 +20,9 @@ impl Registry {
         T: Flatten,
     {
         for characteristic in segment.a2l_flatten().unwrap() {
+            //TODO: Setting the characteristic address here is ugly
+            // let ext = 0; //XCP_ADDR_EXT_APP
+            // let offset = ((&self.#field_name as *const _ as *const u8 as usize) - (self as *const _ as *const u8 as usize)) as u16;
             self.add_characteristic(characteristic)
         }
     }
@@ -33,6 +37,9 @@ pub struct Characteristic {
     pub max: i64,
     pub unit: String,
     pub characteristic_type: CharacteristicType,
+    //TODO: Might be unnecessary
+    pub offset: u16,
+    pub extension: u8
 }
 
 #[derive(Debug)]
