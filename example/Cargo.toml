@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-flatten = { path = "../flatten" }
-flatten_derive = { path = "../flatten/flatten_derive" }
+characteristic_container = { path = "../characteristic_container" }
+characteristic_container_derive = { path = "../characteristic_container/characteristic_container_derive" }

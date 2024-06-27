@@ -1,5 +1,5 @@
-use flatten::{Characteristic, CharacteristicContainer, CharacteristicType};
-use flatten_derive::CharacteristicContainer;
+use characteristic_container::{Characteristic, CharacteristicContainer, CharacteristicType};
+use characteristic_container_derive::CharacteristicContainer;
 
 #[derive(Clone, Copy, CharacteristicContainer, Debug)]
 struct Parent {

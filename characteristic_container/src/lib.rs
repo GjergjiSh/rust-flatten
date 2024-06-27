@@ -92,7 +92,7 @@ pub enum CharacteristicType {
 // The CharacteristicContainer trait implementation for Rust primitives
 // is simply a blanket (empty) trait implementation. This macro is used
 // to automatically generate the implementation for Rust primitives
-macro_rules! impl_flatten_for_primitive {
+macro_rules! impl_characteristic_container_for_primitive {
     ($($t:ty),*) => {
         $(
             impl CharacteristicContainer for $t {}
@@ -100,7 +100,7 @@ macro_rules! impl_flatten_for_primitive {
     };
 }
 
-impl_flatten_for_primitive!(
+impl_characteristic_container_for_primitive!(
     u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64, bool, char, String
 );
 

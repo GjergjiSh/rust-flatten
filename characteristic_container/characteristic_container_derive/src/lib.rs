@@ -11,7 +11,7 @@ use utils::{parse_characteristic_attributes, parse_characteristic_type};
 const XCP_ADDR_EXT_APP: u8 = 0;
 
 #[proc_macro_derive(CharacteristicContainer, attributes(comment, min, max, unit))]
-pub fn flatten_derive(input: TokenStream) -> TokenStream {
+pub fn characteristic_container_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let data_type = &input.ident;
 

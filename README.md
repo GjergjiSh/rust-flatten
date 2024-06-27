@@ -23,7 +23,7 @@ when i write the Parent to the A2L file i expected this to be written
 /begin CHARACTERSITIC Parent.uid 0x00000000 u8 (other data irrelevant for not)
 /begin CHARACTERSITIC Parent.Child.uid 0x00000000 u8 (other data irrelevant for not)
 
-This is why i asked for the ability to flatten the struct so that the child fields are written as if they were part of the parent struct.
+This is why i asked for the ability to characteristic_container the struct so that the child fields are written as if they were part of the parent struct.
 
 However this seems a bit too tricky
 What i need is some way to unpack the nested structs in the parent struct so i get an intermediary representation 
@@ -139,8 +139,8 @@ To resolve this issue, you need a way to conditionally call to_a2l_optional only
 
 One workaround is to use a procedural macro to generate different code based on the type of each field. However, this requires knowing the types at compile time and cannot be done with simple trait bounds or conditional checks in the trait implementation itself.
 
-Another approach is to provide a default implementation of CharacteristicContainer for all types that do not need flattening, essentially making the operation a no-op for them. This can be somewhat achieved using a blanket implementation, but Rust does not allow blanket implementations that conflict with more specific implementations.
+Another approach is to provide a default implementation of CharacteristicContainer for all types that do not need characteristic_containering, essentially making the operation a no-op for them. This can be somewhat achieved using a blanket implementation, but Rust does not allow blanket implementations that conflict with more specific implementations.
 
-Given these constraints, the most straightforward solution might be to reconsider the design. If the goal is to only flatten certain complex types (and ignore or handle primitives differently), you might need to explicitly mark which fields or types should be flattened, or provide a mechanism to bypass the flattening process for types that do not support it.
+Given these constraints, the most straightforward solution might be to reconsider the design. If the goal is to only characteristic_container certain complex types (and ignore or handle primitives differently), you might need to explicitly mark which fields or types should be characteristic_containered, or provide a mechanism to bypass the characteristic_containering process for types that do not support it.
 
-For example, you could introduce a marker trait or use an attribute macro to specify which fields should be flattened, avoiding the attempt to flatten types that do not support it. This approach requires manual annotation but offers greater control over the flattening process.
+For example, you could introduce a marker trait or use an attribute macro to specify which fields should be characteristic_containered, avoiding the attempt to characteristic_container types that do not support it. This approach requires manual annotation but offers greater control over the characteristic_containering process.

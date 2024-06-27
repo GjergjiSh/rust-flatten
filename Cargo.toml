@@ -4,6 +4,6 @@ resolver = "2"
 
 members = [
     "example",
-    "flatten",
-    "flatten/flatten_derive",
+    "characteristic_container",
+    "characteristic_container/characteristic_container_derive",
 ]
