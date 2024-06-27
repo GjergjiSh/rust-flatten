@@ -4,15 +4,17 @@
 use lazy_static::lazy_static;
 use std::sync::{Mutex, Once};
 
-lazy_static! {
-    static ref REGISTRY_INSTANCE: Mutex<Registry> = Mutex::new(Registry {
-        characteristics: Vec::new(),
-    });
-}
+// Assuming a fixed size for the array
+const MAX_CHARACTERISTICS: usize = 10;
+
+// Global instance without lazy_static
+static REGISTRY_INSTANCE: Mutex<Registry> = Mutex::new(Registry {
+    characteristics: [None, MAX_CHARACTERISTICS], // Array of Option<Characteristic>, assuming Characteristic is Clone
+});
 
 #[derive(Debug)]
 pub struct Registry {
-    characteristics: Vec<Characteristic>,
+    characteristics: [Characteristic; MAX_CHARACTERISTICS],
 }
 
 impl Registry {
